@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="src/css/lib_stv.css">
+    <link rel="stylesheet" href="src/css/roboto.css">
+</head>
+
+<body>
+    <header>
+        <div id="info-line">
+            <h1 class="roboto-bold">
+                Pedido UUID: {{ uuid }}
+                <br>
+                <span>
+                    Cliente: {{ nameClient }}
+                </span>
+                <span>
+                    Pedido: {{ namePedding }}
+                </span>
+            </h1>
+            <span id="end" class="roboto-medium">Emision: {{ date }}</span>
+        </div>
+    </header>
+    <main>
+        <table class="table table-striped" id="content">
+            <thead>
+                <tr>
+                    <th class="col-4">CODIGO</th>
+                    <th class="col-6">DEPART.</th>
+                    <th class="col-3">DEPO.</th>
+                    <th class="col-9">PAQUETES.</th>
+                    <th class="col-10">REVISION.</th>
+                    <th class="col-3">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (buys as item)
+                <tr>
+                    <td class="col-4">{{ item.code }}</td>
+                    <td class="col-6">{{ item.depa }}</td>
+                    <td class="col-3">{{ item.depo }}</td>
+                    <td class="col-9">{{ item.packs }}</td>
+                    <td class="col-10">{{ item.verify }}</td>
+                    <td class="col-3">{{ item.total }}</td>
+
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </main>
+</body>
+
+</html>
+
+<style>
+    /*CONTENT ITEMS*/
+    @page {
+        padding: 0;
+        margin: 0cm 0.4cm;
+        margin-top: 1.7cm;
+        margin-bottom: 0.6cm;
+    }
+
+    header {
+        position: fixed;
+        top: -1.64cm;
+        left: 0px;
+        right: 0px;
+        height: 4.5cm;
+    }
+
+    body * {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto';
+        font-weight: 400;
+    }
+
+    header #info-line {
+        width: 100%;
+        margin: 14px 0;
+    }
+
+    header #info-line h1 {
+        float: left;
+    }
+
+    header #info-line * {
+        font-size: 14px;
+        width: 50%;
+    }
+
+    header #info-line span#end {
+        float: right;
+        text-align: right;
+    }
+
+
+    main table {
+        width: 100%;
+        border: 0;
+        border-spacing: 0;
+    }
+
+
+    main table tr th {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+        font-size: 12px;
+        text-align: left;
+        font-weight: 700;
+        padding: 4px;
+
+    }
+
+    main table tr td {
+        font-size: 12px;
+        text-align: left;
+        font-weight: 500;
+        padding: 4px;
+        border-bottom: 1px solid #8b8b8b;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f3f3f3;
+    }
+</style>

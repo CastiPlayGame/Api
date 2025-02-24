@@ -1,0 +1,9 @@
+POST http://localhost/Api/document/view/xlsx/sts
+Authorization: Bearer NS20gEo80zV6F3WoxFOR5UKgztqilJ63
+
+{
+    "type": "STS_002",
+    "filter" {
+        "year": 2024
+    }
+}

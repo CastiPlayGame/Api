@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="src/css/lib_stv.css">
+    <link rel="stylesheet" href="src/css/roboto.css">
+
+</head>
+<body>
+    <header>
+        <section id="infoGeneral">
+            <img src="{{companyLogo}}" alt="">
+            <div id="info-text">
+                <h1 class="roboto-regular">{{companyAddress}}</h1>
+                <div id="info-phones">
+                    <span>
+                        {{companyPhone1}}
+                    </span>
+                    <space class="sp-1">
+                        <span>
+                            {{companyPhone2}}
+                        </span>
+                </div>
+                <div id="info-emails">
+                    <p>{{companyEmail1}}</p>
+                    <p>{{companyEmail2}}</p>
+                </div>
+            </div>
+        </section>
+        <section id="infoDoc">
+            <div id="info-document">
+                <div id="info-center">
+                    <h1 class="roboto-bold">{{typeDocument}}</h1>
+                    <h2 class="roboto-bold">{{nrDocument}} | @sprintf('%010d', I)</h2>
+                    <h3 class="roboto-bold">{{typeCurrency}}</h3>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Fecha Emisión:</h1>
+                    <span class="roboto-regular">{{dateIssueDoc}}</span>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Hora de Registro:</h1>
+                    <span class="roboto-regular">{{timeIssueDoc}}</span>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Válido Hasta:</h1>
+                    <span class="roboto-regular">{{creditIssueDoc}}</span>
+                </div>
+
+            </div>
+        </section>
+        <section id="infoClient">
+            <div id="info-line">
+                <span class="roboto-bold">Nombre o Razón Social:</span>
+                <span class="roboto-regular">{{nameClientInfo}}</span>
+            </div>
+            <div id="info-inline">
+                <span id="info-line">
+                    <span class="roboto-bold">Identificación:</span>
+                    <span class="roboto-regular">{{indentClientInfo}}</span>
+                </span>
+                <span id="info-line">
+                    <span class="roboto-bold">Teléfono:</span>
+                    <span class="roboto-regular">{{phoneClientInfo}}</span>
+                </span>
+            </div>
+
+            <div id="info-line" class="address">
+                <span class="roboto-bold">Direccion Fiscal:</span>
+                <span class="roboto-regular">{{addresClientInfo}}</span>
+            </div>
+        </section>
+    </header>
+    <footer>
+        <div id="contentTop">
+            <section id="infoExtra">
+                <div id="info-extra-container">
+                    <h1 class="roboto-bold">Observaciones: <span id="observation">{{observationInfoDoc}}</span></h1>
+                </div>
+            </section>
+            <section id="infoDetails">
+                <div id="info-details-container">
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Total</h1>
+                        <span class="roboto-regular">{{totalInfoDoc}}$</span>
+                    </div>
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Descuento</h1>
+                        <span class="roboto-regular">{{discountInfoDoc}}</span>
+                    </div>
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Total Operacion</h1>
+                        <span class="roboto-regular">{{totalOperatingInfoDoc}}$</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <section id="infoMetaData">
+            <span id="nameCompany" class="roboto-bold">{{nameInfoFooterImportant}}</span>
+            <span id="condition" class="roboto-bold">{{conditionInfoFooterImportant}}</span>
+        </section>
+    </footer>
+
+    <style rel>
+        @page {
+            padding: 0;
+            margin: 0cm 0.8cm;
+            margin-top: 4.78cm;
+            margin-bottom: 3.2cm;
+        }
+
+        body * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto';
+            font-weight: 400;
+        }
+
+        /** Define the header rules **/
+        header {
+            position: fixed;
+            top: -4.44cm;
+            left: 0px;
+            right: 0px;
+            height: 4.5cm;
+        }
+
+        footer {
+            border-top: 1px solid black;
+            position: fixed;
+            bottom: -2.6cm;
+            left: 0px;
+            right: 0px;
+            height: 2.88cm;
+        }
+    </style>
+</body>
+
+</html>

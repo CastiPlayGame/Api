@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="src/css/lib_stv.css">
+    <link rel="stylesheet" href="src/css/roboto.css">
+
+</head>
+<body>
+    <header>
+        <section id="infoGeneral">
+            <img src="{{companyLogo}}" alt="">
+            <div id="info-text">
+                <h1 class="roboto-regular">{{companyAddress}}</h1>
+                <div id="info-phones">
+                    <span>
+                        {{companyPhone1}}
+                    </span>
+                    <space class="sp-1">
+                        <span>
+                            {{companyPhone2}}
+                        </span>
+                </div>
+                <div id="info-emails">
+                    <p>{{companyEmail1}}</p>
+                    <p>{{companyEmail2}}</p>
+                </div>
+            </div>
+        </section>
+        <section id="infoDoc">
+            <div id="info-document">
+                <div id="info-center">
+                    <h1 class="roboto-bold">{{typeDocument}}</h1>
+                    <h2 class="roboto-bold">{{nrDocument}} | @sprintf('%010d', I)</h2>
+                    <h3 class="roboto-bold">{{typeCurrency}}</h3>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Fecha Emisión:</h1>
+                    <span class="roboto-regular">{{dateIssueDoc}}</span>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Hora de Registro:</h1>
+                    <span class="roboto-regular">{{timeIssueDoc}}</span>
+                </div>
+
+                <div id="info-line">
+                    <h1 class="roboto-bold">Válido Hasta:</h1>
+                    <span class="roboto-regular">{{creditIssueDoc}}</span>
+                </div>
+
+            </div>
+        </section>
+        <section id="infoClient">
+            <div id="info-line">
+                <span class="roboto-bold">Nombre o Razón Social:</span>
+                <span class="roboto-regular">{{nameClientInfo}}</span>
+            </div>
+            <div id="info-inline">
+                <span id="info-line">
+                    <span class="roboto-bold">Identificación:</span>
+                    <span class="roboto-regular">{{indentClientInfo}}</span>
+                </span>
+                <span id="info-line">
+                    <span class="roboto-bold">Teléfono:</span>
+                    <span class="roboto-regular">{{phoneClientInfo}}</span>
+                </span>
+            </div>
+
+            <div id="info-line" class="address">
+                <span class="roboto-bold">Direccion Fiscal:</span>
+                <span class="roboto-regular">{{addresClientInfo}}</span>
+            </div>
+        </section>
+    </header>
+    <footer>
+        <div id="contentTop">
+            <section id="infoExtra">
+                <div id="info-extra-container">
+                    <h1 class="roboto-bold">Observaciones: <span id="observation">{{observationInfoDoc}}</span></h1>
+                </div>
+            </section>
+            <section id="infoDetails">
+                <div id="info-details-container">
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Total</h1>
+                        <span class="roboto-regular">{{totalInfoDoc}}$</span>
+                    </div>
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Descuento</h1>
+                        <span class="roboto-regular">{{discountInfoDoc}}</span>
+                    </div>
+                    <div id="info-line">
+                        <h1 class="roboto-bold">Total Operacion</h1>
+                        <span class="roboto-regular">{{totalOperatingInfoDoc}}$</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <section id="infoMetaData">
+            <span id="nameCompany" class="roboto-bold">{{nameInfoFooterImportant}}</span>
+            <span id="condition" class="roboto-bold">{{conditionInfoFooterImportant}}</span>
+        </section>
+    </footer>
+    <main>
+        <table id="content">
+            <thead>
+                <tr>
+                    <th class="col-3">CODIGO</th>
+                    <th class="col-10">DESC.</th>
+                    <th class="col-7">DEPTO.</th>
+                    <th class="col-2" style="text-align: right;">PRECIO</th>
+                    <th class="col-2" style="text-align: right;">DTO.</th>
+                    <th class="col-4" style="text-align: right;">TOTAL x DTO.</th>
+                    <th class="col-2" style="text-align: right;">CANT.</th>
+                    <th class="col-4" style="text-align: right;">TOTAL x ITEM</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (buys as item)
+                <tr>
+                    <td>{{ item.code }}</td>
+                    <td>{{ item.descp }}</td>
+                    <td>{{ item.depa }}</td>
+                    <td style="text-align: right;">{{ item.unitBase }} | @number_format(I,3,',', '.')</td>
+                    <td style="text-align: right;">{{ item.disc }}</td>
+                    <td style="text-align: right;">{{ item.costDisc }} | @number_format(I,2,',', '.')</td>
+                    <td style="text-align: right;">{{ item.total }}</td>
+                    <td style="text-align: right;">{{ item.cost }} | @number_format(I,2,',', '.')</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </main>
+
+    <style rel>
+        @page {
+            padding: 0;
+            margin: 0cm 0.8cm;
+            margin-top: 4.78cm;
+            margin-bottom: 3.2cm;
+        }
+
+        body * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto';
+            font-weight: 400;
+        }
+
+        /** Define the header rules **/
+        header {
+            position: fixed;
+            top: -4.44cm;
+            left: 0px;
+            right: 0px;
+            height: 4.5cm;
+        }
+
+        footer {
+            border-top: 1px solid black;
+            position: fixed;
+            bottom: -2.6cm;
+            left: 0px;
+            right: 0px;
+            height: 2.88cm;
+        }
+
+        header section#infoDoc {
+            float: left;
+        }
+
+        /* INFOGENERAL */
+        header section#infoGeneral img {
+            width: 5.95cm;
+            height: 2.75cm;
+            margin-right: 3px;
+            float: left;
+        }
+
+        header section#infoGeneral #info-text {
+            float: left;
+            font-size: 10.5px;
+
+        }
+
+        header section#infoGeneral #info-text h1 {
+            font-size: 13.4px;
+            margin-bottom: 0.2cm;
+            line-height: 1em;
+        }
+
+        header section#infoGeneral #info-phones span {
+            font-size: 13.5px;
+        }
+
+        header section#infoGeneral #info-emails {
+            margin-top: 0.2cm;
+        }
+
+        header section#infoGeneral #info-emails p:first-child {
+            margin-bottom: -5px;
+        }
+
+        header section#infoGeneral * {
+            font-size: 10.7px;
+        }
+
+        /*INFO DOCUMENT*/
+        header section#infoDoc #info-document {
+            border: solid 1 black;
+            border-radius: 5px;
+            width: 4.7cm;
+            height: 2.85cm;
+            margin-left: 30px;
+            margin-top: 36px;
+            padding: 2px 8px;
+        }
+
+        header section#infoDoc #info-document #info-center {
+            width: 100%;
+            text-align: center;
+            margin-bottom: -12px;
+        }
+
+        header section#infoDoc #info-document #info-center h2 {
+            font-size: 13px;
+            margin-top: -3px;
+        }
+
+        header section#infoDoc #info-document #info-center h3 {
+            font-size: 11px;
+            margin-top: -3px;
+        }
+
+        header section#infoDoc #info-document #info-center h1 {
+            font-size: 16px;
+        }
+
+        header section#infoDoc #info-document #info-line {
+            width: 100%;
+            margin: 14px 0;
+        }
+
+        header section#infoDoc #info-document #info-line h1 {
+            float: left;
+        }
+
+        header section#infoDoc #info-document #info-line * {
+            font-size: 11.3px;
+            width: 50%;
+        }
+
+        header section#infoDoc #info-document #info-line span {
+            float: right;
+            text-align: right;
+        }
+
+
+        /*INFO CLIENT*/
+        header section#infoClient {
+            clear: both;
+            width: 100%;
+            margin-top: -1.4cm;
+        }
+
+        header section#infoClient div#info-line {
+            margin-top: -7.6px;
+        }
+
+
+        header section#infoClient #info-line span {
+            font-size: 11.5px;
+        }
+
+        header section#infoClient #info-line.address {
+            width: 600px;
+        }
+
+        header section#infoClient #info-inline #info-line {
+            margin-right: 10px;
+        }
+
+        header section#infoClient #info-inline {
+            margin-top: -7.5px;
+        }
+
+        /*CONTENT ITEMS*/
+
+        main table {
+            width: 100%;
+            border: 0;
+            border-spacing: 0;
+        }
+
+
+        main table tr th {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            font-size: 11px;
+            text-align: left;
+            font-weight: 700;
+            padding: 1.8px;
+
+        }
+
+        main table tr td {
+            font-size: 10.6px;
+            text-align: left;
+            font-weight: 400;
+            padding: 1.5px;
+        }
+
+        /*INFO EXTRAS*/
+        footer #contentTop {
+            height: 75%;
+        }
+
+
+        footer #infoDetails {
+            float: left;
+            width: 35%;
+            height: 100%;
+        }
+
+        footer #infoDetails #info-details-container {
+            width: 100%;
+            height: 100%;
+            padding: 8px 0px;
+        }
+
+        footer #infoExtra {
+            float: left;
+            width: 65%;
+            height: 100%;
+        }
+
+        footer #infoExtra #info-extra-container {
+            width: 100%;
+            height: 100%;
+            padding: 8px 0px;
+        }
+
+        footer #infoMetaData {
+            border-top: 1px solid black;
+            position: relative;
+            width: 100%;
+            height: 20%;
+            display: table;
+        }
+
+        footer #infoMetaData * {
+            display: table-cell;
+            width: 50%;
+            font-size: 10.6px;
+        }
+
+        footer #infoMetaData #condition {
+            text-align: right;
+        }
+
+        footer #infoDetails #info-line {
+            width: 100%;
+            margin: 1px 0;
+            display: table;
+        }
+
+        footer #infoDetails #info-line h1 {
+            display: table-cell;
+            width: 50%;
+        }
+
+        footer #infoDetails #info-line * {
+            font-size: 12px;
+            width: 50%;
+        }
+
+        footer #infoDetails #info-line span {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+        }
+
+        footer #infoExtra h1 {
+            font-size: 12px;
+        }
+
+        footer #infoExtra h1 {
+            width: 90%;
+            height: 100%;
+        }
+
+        footer #infoExtra h1 #observation {
+            width: 100%;
+            height: 100%;
+            font-size: 11.5px;
+        }
+    </style>
+</body>
+
+</html>

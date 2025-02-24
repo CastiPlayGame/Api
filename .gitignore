@@ -1,0 +1,13 @@
+.env 
+
+vendor/
+.composer.lock
+
+
+logs/inventory/*
+logs/request/*
+
+data/doc/pdf/*
+data/doc/excel/*
+
+data/pic/*
