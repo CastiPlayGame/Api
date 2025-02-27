@@ -200,8 +200,9 @@ class ExcelControllerData
                             $price -= $c["discount"][0];
                         }
                         $cont["prices"][$month] += $tempTotal * $price;
+                    } else {
+                        $cont["prices"][$month] += $tempTotal * $c['price'];
                     }
-                    $cont["prices"][$month] += $tempTotal * $c['price'];
                     $list_template_items[$c["code"]] = $cont;
                 }
             }
@@ -317,13 +318,14 @@ class ExcelControllerData
                     $tempTotal += ($k * $v);
                 }
 
-                if (!empty($c["discount"][0])) {
+                if (!empty($c["discount"][0] )) {
                     if ($c["discount"][1]) {
-                        $price -=  $c['price'] * ($c["discount"][0] / 100);
+                        $price -=  floatval($c['price']) * ($c["discount"][0] / 100);
                     } else {
                         $price -= $c["discount"][0];
                     }
                     $list_template_items[$infoData[0]]["prices"][$month] += $tempTotal * $price;
+                    continue;
                 }
                 $list_template_items[$infoData[0]]["prices"][$month] += $tempTotal * $c['price'];
             }
