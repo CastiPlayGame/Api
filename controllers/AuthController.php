@@ -7,8 +7,8 @@ use Firebase\JWT\Key;
 class AuthManager
 {
     private $db;
-    private $SECRET_KEY = 'your_secret_key_here';
-    private $TOKEN_EXPIRATION_TIME = 3600*4;
+    private $SECRET_KEY = 'djnky57bnqtQLKAnokYtMDRY7TVdQsNILbxX0xbFvDCakbcSn3mu7mfgSMDmWfN0vMcCbwDOA9BvDzOBRKhHrqrjsePmoR8J57LO';
+    private $TOKEN_EXPIRATION_TIME = 3600*1;
 
 
     function __construct()
@@ -49,10 +49,27 @@ class AuthManager
             return $info;
         }
 
-        $query = $this->db->prepare("SELECT username,password FROM users WHERE id = :id");
+        $query = $this->db->prepare("
+        SELECT 
+            username,
+            password,
+            JSON_UNQUOTE(JSON_EXTRACT(acctAdvanced,'$.banned.canBuy')) AS canBuy
+        FROM 
+            users 
+        WHERE 
+            id = :id AND
+            JSON_EXTRACT(acctAdvanced,'$.banned.ban') = false AND
+            JSON_EXTRACT(acctAdvanced,'$.banned.canLogin') = false
+        ");
 
         if ($query->execute([":id" => $info->data[0]])) {
             $user = $query->fetch();
+
+            if (!$user){
+                Flight::halt(403, json_encode([
+                    "response" => 'No autorizado'
+                ]));
+            }
             if ($info->data[1] != $user['username']) {
                 Flight::halt(403, json_encode([
                     "response" => 'No autorizado'
@@ -63,7 +80,7 @@ class AuthManager
                     "response" => 'No autorizado'
                 ]));
             }
-
+            array_push($info->data, $user["canBuy"]);
             return $info;
         } else {
             Flight::halt(401, json_encode([
@@ -86,7 +103,17 @@ class AuthManager
     {
         $password = str_replace(" ", "", Flight::request()->data->password);
         $username = str_replace(" ", "", Flight::request()->data->username);
-        $query = $this->db->prepare("SELECT id,password FROM users WHERE username = :username");
+        $query = $this->db->prepare("
+        SELECT 
+            id,
+            password,
+            JSON_UNQUOTE(JSON_EXTRACT(acctAdvanced,'$.banned.canLogin')) AS canLogin,
+            JSON_UNQUOTE(JSON_EXTRACT(acctAdvanced,'$.banned.ban')) AS ban
+        FROM 
+            users 
+        WHERE 
+            username = :username
+        ");
 
 
 
@@ -98,6 +125,13 @@ class AuthManager
                     "response" => 'Usuario No Existe'
                 ]));
             }
+
+            if($user["canLogin"] == "true" || $user["ban"] == "true"){
+                Flight::halt(404, json_encode([
+                    "response" => 'Usuario Baneado'
+                ]));
+            }
+
             if (!password_verify($password, $user['password'])) {
                 Flight::halt(401, json_encode([
                     "response" => 'Datos Incorrectos'

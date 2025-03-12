@@ -32,7 +32,9 @@ class SaleController
         $Paid = 0;
         foreach (json_decode($array["paid"], true) as $value) $Paid += floatval($value["ammount"]);
 
-        if (intval($array["event"]) < 2) {
+        if (intval($array["event"]) == 3) {
+            return 6;
+        } else if (intval($array["event"]) < 2) {
             return $array["event"];
         } else if (intval($array["event"]) == 4) {
             return 5;
@@ -183,62 +185,47 @@ class SaleController
 
     private function filter_all_sales($token, $type)
     {
-        $r = [[],[]];
+        $r = [[], []];
         try {
-            if($type == 0 or $type == -1){
-                $node = "NOT JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].event\")) IN (3,4)";
-                if($type == -1){
-                    $node = "JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].event\")) IN (4)";
-                }
+            $queries = [
+                0 => [
+                    "node" => "AND NOT JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].event\")) IN (3,4)",
+                    "table" => "retainedpurchases",
+                    "event" => "status",
+                    "columns" => "`id`, `buy`, JSON_VALUE(`advanced`, '$.name') as name, JSON_UNQUOTE(JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].event\"))) as event, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].date\"))), '%m/%d/%Y %h:%i %p') AS date",
+                    "format" => "format_all_retained"
+                ],
+                1 => [
+                    "node" => "AND NOT JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (4,3)",
+                    "table" => "sales",
+                    "event" => "event",
+                    "columns" => "`uuid`, `nr`, CAST(AES_DECRYPT(`paids`, :aes) AS CHAR) as paid, JSON_VALUE(`advanced`, '$.additionals.credit') as credit, JSON_VALUE(`advanced`, '$.additionals.name') as name, JSON_VALUE(`advanced`, '$.additionals.discount') as discount, `buy`, JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\"))) as event, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].date\"))), '%m/%d/%Y %h:%i %p') AS date",
+                    "format" => "format_all_sale"
+                ],
+                -1 => [
+                    "node" => "AND JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (3)",
+                    "table" => "sales",
+                    "event" => "event",
+                    "columns" => "`uuid`, `nr`, CAST(AES_DECRYPT(`paids`, :aes) AS CHAR) as paid, JSON_VALUE(`advanced`, '$.additionals.credit') as credit, JSON_VALUE(`advanced`, '$.additionals.name') as name, JSON_VALUE(`advanced`, '$.additionals.discount') as discount, `buy`, JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\"))) as event, DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].date\"))), '%m/%d/%Y %h:%i %p') AS date",
+                    "format" => "format_all_sale"
+                ]
+            ];
+
+            if (isset($queries[$type])) {
+                $queryData = $queries[$type];
                 $query = $this->db->prepare("
-                SELECT 
-                    `id`,
-                    `buy`,
-                    JSON_VALUE(`advanced`, '$.name') as name,
-                    JSON_UNQUOTE(JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].event\"))) as event,
-                    DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`status`,CONCAT(\"$[\",JSON_LENGTH(`status`)-1,\"].date\"))), '%m/%d/%Y %h:%i %p') AS date
-                FROM 
-                    `retainedpurchases`
-                WHERE 
-                    JSON_VALUE(CAST(AES_DECRYPT(`info`, :aes) AS CHAR), '$[0]') = :client_id
-                    AND ".$node."
-                    AND DATE_SUB(CURDATE(), INTERVAL 60 DAY) <= JSON_UNQUOTE(JSON_EXTRACT(`status`,\"$[0].date\"));
+                    SELECT 
+                        ".$queryData['columns']."
+                    FROM 
+                        `".$queryData['table']."`
+                    WHERE 
+                        JSON_VALUE(CAST(AES_DECRYPT(`info`, :aes) AS CHAR), '$[0]') = :client_id
+                        ".$queryData['node']."
+                        AND DATE_SUB(CURDATE(), INTERVAL 60 DAY) <= JSON_UNQUOTE(JSON_EXTRACT(`".$queryData["event"]."`,\"$[0].date\"));
                 ");
                 $query->execute([":aes" => $_ENV['AES_KEY'], ":client_id" => $token->data[0]]);
-                $r[0] = $this->format_all_retained($query->fetchAll(PDO::FETCH_ASSOC));
+                $r[0] = $this->{$queryData['format']}($query->fetchAll(PDO::FETCH_ASSOC));
             }
-
-
-            if($type == 1 or $type == -1){
-                $node = "AND NOT JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (4)";
-                if($type == -1){
-                    $node = "AND JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (4)";
-                }
-                $query1 = $this->db->prepare("
-                SELECT 
-                    `uuid`,
-                    `nr`,
-                    CAST(AES_DECRYPT(`paids`, :aes) AS CHAR) as paid,
-                    JSON_VALUE(`advanced`, '$.additionals.credit') as credit,
-                    JSON_VALUE(`advanced`, '$.additionals.name') as name,
-                    JSON_VALUE(`advanced`, '$.additionals.discount') as discount,
-                    `buy`,
-                    JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\"))) as event,
-                    DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].date\"))), '%m/%d/%Y %h:%i %p') AS date
-                FROM 
-                    `sales`
-                WHERE 
-                    `type` = 1
-                    AND JSON_VALUE(CAST(AES_DECRYPT(`info`, :aes) AS CHAR), '$[0]') = :client_id
-                    ".$node."
-                    AND DATE_SUB(CURDATE(), INTERVAL 60 DAY) <= JSON_UNQUOTE(JSON_EXTRACT(`event`,\"$[0].date\"));
-
-                ");
-                $query1->execute([":aes" => $_ENV['AES_KEY'], ":client_id" => $token->data[0]]);
-                $r[1] = $this->format_all_sale($query1->fetchAll(PDO::FETCH_ASSOC));
-            }
-            
-
 
             return $r;
 
@@ -257,14 +244,12 @@ class SaleController
 
         try {
             $filts = $this->filter_all_sales($token, $filt_type_sales);
-            $retained = $filts[0];
-            $sales = $filts[1];
+            $result = $filts[0];
 
-            if (count($retained) > 0 or count($sales) > 0) {
+            if (count($result) > 0) {
                 Flight::halt(message: json_encode([
                     "response" => [
-                        "retained" => $retained,
-                        "sales" => $sales
+                        "result" => $result,
                     ]
                 ]));
             } else {

@@ -102,35 +102,50 @@ class Template
 
         // Ejecutar funciones
         $this->template = preg_replace_callback(
-            '/(?:([^|]+?)\s*\|\s*)?&([a-zA-Z0-9_]+)\(([^)]*)\)/',
+            '/(?:([^|]+?)\s*\|\s*)?&([a-zA-Z0-9_]+)\(\s*((?:"[^"]*"|\'[^\']*\'|[^()])*)\s*\)/',
             function ($m) use ($data) {
                 $funcName = $m[2];
                 $paramsString = $m[3];
-
-                // 1. Dividir parámetros respetando comillas
-                $params = preg_split('/\s*,\s*(?=(?:[^"\']|"[^"]*"|\'[^\']*\')*$)/', $paramsString);
-
+        
+                // Usamos preg_match_all para extraer cada parámetro:
+                preg_match_all(
+                    '/\s*(?:"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|\'([^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\'|([^,\s][^,]*))\s*(?:,|$)/',
+                    $paramsString,
+                    $matches,
+                    PREG_SET_ORDER
+                );
+        
+                $params = [];
+                foreach ($matches as $match) {
+                    if (isset($match[1]) && $match[1] !== '') {
+                        // Parámetro entre comillas dobles
+                        $params[] = $match[1];
+                    } elseif (isset($match[2]) && $match[2] !== '') {
+                        // Parámetro entre comillas simples
+                        $params[] = $match[2];
+                    } elseif (isset($match[3]) && $match[3] !== '') {
+                        // Parámetro sin comillas
+                        $params[] = $match[3];
+                    }
+                }
+        
+                // Reemplazar variables dentro de cada parámetro
                 foreach ($params as &$param) {
                     $param = trim($param);
-
-                    // 2. Eliminar comillas circundantes (ej: "{{var}}" → {{var}})
-                    if (preg_match('/^(["\'])(.*)\1$/', $param, $quotes)) {
-                        $param = $quotes[2];
-                    }
-
-                    // 3. Reemplazar variables dentro del parámetro
                     $param = preg_replace_callback('/{{\s*(.*?)\s*}}/', function ($pm) use ($data) {
                         return $data[trim($pm[1])] ?? '';
                     }, $param);
                 }
-
-                // Ejecutar la función
+        
+                // Ejecutar la función si existe, o devolver un mensaje de error si no se encontró
                 return function_exists($funcName)
                     ? call_user_func_array($funcName, $params)
                     : "FUNCIÓN $funcName NO ENCONTRADA";
             },
             $this->template
         );
+        
+        
 
         // Incluir CSS
         if (isset($this->options['include_css']) && $this->options['include_css']) {

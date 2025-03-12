@@ -57,6 +57,12 @@ class StoreController
                 "response" => "!Ups. el carrito esta vacio¡"
             ]));
         }
+        
+        if ($token->data[4] == "true") {
+            Flight::halt(402, json_encode([
+                "response" => "!Ups. No Tienes Acceso Para Hacer Compras¡"
+            ]));
+        }
 
         try {
             $this->db->beginTransaction();
