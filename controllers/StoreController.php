@@ -68,13 +68,15 @@ class StoreController
             $this->db->beginTransaction();
             $warehouse = $this->seacrh_warehouses_and_sub($token, $cart);
 
-            if (empty($warehouse[2])) {
+            if (empty($warehouse[2]) || empty($warehouse[0])) {
                 $this->db->rollBack();
                 Flight::halt(404, json_encode([
                     "response" => "!Todos Los Productos Agotados¡"
                 ]));
             }
+
             $get_errors = $this->check_if_items_all_pass($warehouse[2], $warehouse[1]);
+
             $query = $this->db->prepare(
                 "INSERT INTO `retainedpurchases` (
                     `id`,
@@ -253,7 +255,14 @@ class StoreController
                         JOIN departments d ON JSON_EXTRACT(`items`.info,'$.departament') = d.uuid
                         CROSS JOIN 
                             (SELECT JSON_VALUE(acctAdvanced, '$.price') AS price_index FROM `users` WHERE `id` = :client_id) AS a
-                    WHERE`items`.uuid = :uuid
+                    WHERE 
+                    `items`.uuid = :uuid
+                    AND JSON_EXTRACT(d.`advanced`, '$.hide') = false
+                    AND JSON_SEARCH(JSON_VALUE(d.`advanced`, '$.blackList'), 'one', :client_id) IS NULL
+                    
+                    AND JSON_EXTRACT(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.hide') = false
+                    AND JSON_SEARCH(JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views'), 'one', :client_id) IS NULL
+                
                 ");
                 $query->execute([":aes" => $_ENV["AES_KEY"], ":client_id" => $token->data[0], ":uuid" => $uuid]);
 
