@@ -43,12 +43,23 @@ class AuthManager
 
     public function validateToken()
     {
+        $headers = apache_request_headers();
+
+
         $info = $this->getToken();
 
         if ($info->data[3] === 'admin'){
             return $info;
         }
+        
+        $authorization = $headers["X-App-Version"];
 
+        if ($authorization != '1.0.0'){
+            Flight::halt(401, json_encode([
+                "response" => 'Hay una Nueva Actualizacion'
+            ]));
+        }
+        
         $query = $this->db->prepare("
         SELECT 
             username,
@@ -101,6 +112,18 @@ class AuthManager
 
     public function newAuth()
     {
+        $headers = apache_request_headers();
+
+
+
+        $authorization = $headers["X-App-Version"];
+
+        if ($authorization != '1.0.0'){
+            Flight::halt(401, json_encode([
+                "response" => 'Hay una Nueva Actualizacion'
+            ]));
+        }
+
         $password = str_replace(" ", "", Flight::request()->data->password);
         $username = str_replace(" ", "", Flight::request()->data->username);
         $query = $this->db->prepare("
