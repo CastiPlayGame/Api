@@ -342,7 +342,6 @@ class PinesSys_ItemManager
                     JSON_EXTRACT(CAST(AES_DECRYPT(acctPersonal, :aes) AS CHAR), \"$.user\") AS nameAndLastName
                 FROM 
                     `users`
-                LIMIT 15
             ");
 
             $query_clients->execute([":aes" => $_ENV['AES_KEY']]);

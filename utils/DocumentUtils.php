@@ -272,6 +272,8 @@ class ExcelControllerData
             $personalInfo = json_decode($sale["personalInfo"], true);
             $date = null;
 
+
+
             foreach ($eventData as $a) {
                 if ($a["event"] == 0) {
                     $date = $a["date"];
@@ -295,6 +297,8 @@ class ExcelControllerData
             }
 
 
+
+
             foreach ($buyData as $c) {
                 $price = $c['price'];
                 $tempTotal = 0;
@@ -302,8 +306,8 @@ class ExcelControllerData
                 if (!key_exists($infoData[0], $list_template_items)) {
                     $list_template_items[$infoData[0]] = [
                         "name" => $infoData[2],
-                        "state" => isset($personalInfo["state"]) ? $states[$personalInfo["state"]] : "N/A",
-                        "isUp" => isset($personalInfo["isUp"]) ? ($personalInfo["isUp"] ? "Mayor" : "Detal") : "N/A",
+                        "state" => (array_key_exists("state", $personalInfo) && !empty($personalInfo["state"])) ? $states[$personalInfo["state"]] : "N/A",
+                        "isUp" => array_key_exists("isUp", $personalInfo) ? ($personalInfo["isUp"] ? "Mayor" : "Detal") : "N/A",
                         "notes" => 0,
                         "amounts" => array_fill(0, 12, 0),
                         "prices" => array_fill(0, 12, 0),
@@ -311,6 +315,7 @@ class ExcelControllerData
                         "total_price" => 0
                     ];
                 }
+
 
                 foreach ($c["packs"] as $k => $v) {
                     $list_template_items[$infoData[0]]["amounts"][$month] += ($k * $v);

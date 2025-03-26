@@ -53,15 +53,15 @@ class DocumentController
             ]));
         }
 
-        //call_user_func([$this, $this->enabled_formats[$format]["engine"]], $type);
-        
+        call_user_func([$this, $this->enabled_formats[$format]["engine"]], $type);
+        /*
         try {
             call_user_func([$this, $this->enabled_formats[$format]["engine"]], $type);
         } catch (Exception $e) {
             Flight::halt(500, json_encode([
                 "response" => "An error occurred: " . $e->getMessage()
             ]));
-        }
+        }*/
     }
 
     private function Excel($type)
@@ -354,6 +354,7 @@ class DocumentController
                     $sales->execute([":aes" => $_ENV['AES_KEY']]);
                     $datas = $sales->fetchAll(PDO::FETCH_ASSOC);
 
+                    
                     $list = (new ExcelControllerData())->STS_002($filter["year"], $datas);
 
                     $activeWorksheet->setTitle("Inventario");
