@@ -48,9 +48,8 @@ class ExcelControllerData
     public function INV_001($items)
     {
         foreach ($items as &$item) {
-            $item["amount"] = $this->itemUtils->item_quantity_for_warehouse(json_decode($item['quantity'], true));
-            $total = $this->itemUtils->item_quantity($this->itemUtils->mergePackets(json_decode($item['quantity'], true), true));
-            $item["amount"] = array_values(array_replace(array_fill(1, 4, ""), $item["amount"]));
+            $item["quantity"] = json_decode($item["quantity"], true);
+            $total = $this->itemUtils->item_quantity($this->itemUtils->mergePackets($item["quantity"], true));
 
             $item["prices"] = json_decode($item["prices"], true);
             $item["prices"] = array_values(array_replace(array_fill(0, 4, ""), $item["prices"]));
@@ -63,8 +62,8 @@ class ExcelControllerData
                 $item["depa"],
                 $item["hide"],
                 $item["numview"],
-                ...$item["amount"],
                 $total,
+                array_key_exists("Samples", $item["quantity"][1]) ? $item["quantity"][1]["Samples"] : 0,
                 ...$item["prices"]
             ];
         }

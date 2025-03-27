@@ -129,9 +129,10 @@ class DocumentController
                     $items = (new ExcelControllerData())->INV_001($query->fetchAll(PDO::FETCH_ASSOC));
 
                     $data = [
-                        (new DocumentComplements())->adjustTitles(["Codigo", "Descripcion", "Marca", "Modelo", "Departamento", "Oculto", "Lista Negra", "Deposito*4@", "Total", "Precio*4@"]),
+                        (new DocumentComplements())->adjustTitles(["Codigo", "Descripcion", "Marca", "Modelo", "Departamento", "Oculto", "Lista Negra", "Total", "Muestra", "Precio*4@"]),
                         ...$items
                     ];
+
                     $activeWorksheet->fromArray($data, NULL, 'A1');
 
                     $table = new Table('A1:' . chr(64 + count($data[0])) . count($data), 'Table1');
