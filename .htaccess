@@ -1,7 +1,20 @@
 RewriteEngine On
+
+# Prevent rewriting for existing files and directories
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-RewriteEngine On
-RewriteRule ^(.*)$ index.php
+# Handle CORS headers
+<IfModule mod_headers.c>
+    # Set CORS headers for all responses
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PATCH, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+
+    # Always allow OPTIONS requests
+    <IfModule mod_rewrite.c>
+        RewriteCond %{REQUEST_METHOD} OPTIONS
+        RewriteRule .* - [R=204,L]
+    </IfModule>
+</IfModule>

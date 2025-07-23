@@ -1,5 +1,8 @@
-POST http://localhost/Api/document/view/xlsx/sts
-Authorization: Bearer NS20gEo80zV6F3WoxFOR5UKgztqilJ63
+@token = NS20gEo80zV6F3WoxFOR5UKgztqilJ63
+
+
+POST http://localhost/newApi/document/view/xlsx/sts
+Authorization: Bearer {{token}}
 
 {
     "type": "STS_002",
@@ -7,3 +10,33 @@ Authorization: Bearer NS20gEo80zV6F3WoxFOR5UKgztqilJ63
         "year": 2024
     }
 }
+
+### Obtener todos los batch jobs pendientes
+GET http://localhost/newApi/batch_jobs
+Authorization: Bearer {{token}}
+
+### Crear o actualizar (upsert) un batch job
+POST http://localhost/newApi/batch_jobs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "code": "GC-050",
+    "content": {
+        "download": 50,
+        "upload": 100
+    }
+}
+
+### Actualizar estado de un batch job
+PATCH http://localhost/newApi/batch_jobs/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "completed"
+}
+
+### Cancelar (eliminar lógico) un batch job
+DELETE http://localhost/newApi/batch_jobs/1
+Authorization: Bearer {{token}}

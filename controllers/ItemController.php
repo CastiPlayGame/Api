@@ -17,6 +17,7 @@ class ItemManager
     {
         $filteredStock = [500, 2500, 5000, 10000, true];
         foreach ($array as &$item) {
+
             $total = (new ItemUtils())->item_quantity((new ItemUtils())->mergePackets(json_decode($item['quantity'], true)));
             if (
                 $total <= 0 or
@@ -26,7 +27,6 @@ class ItemManager
                     and $total > $filteredStock[$stock]
                 )
             ) {
-
                 $item = null;
                 continue;
             }
@@ -129,6 +129,8 @@ class ItemManager
             ]));
         }
         try {
+            // Imprime en el log php
+            error_log(json_encode($filter['filter']));
             $query = $this->db->prepare("
             SELECT 
                 `items`.`uuid`, 
@@ -163,8 +165,10 @@ class ItemManager
                     CONCAT('$[', a.price_index, ']')
                 ))) <> ''
                 AND `items`.`id` LIKE :search
-                AND JSON_UNQUOTE(JSON_EXTRACT(CAST(AES_DECRYPT(`items`.`prices`, :aes) AS CHAR), 
-                CONCAT('$[', a.price_index, ']'))) BETWEEN :priceFrom AND :priceTo
+                AND CAST(
+                    JSON_UNQUOTE(JSON_EXTRACT(CAST(AES_DECRYPT(`items`.`prices`, :aes) AS CHAR), 
+                    CONCAT('$[', a.price_index, ']'))) AS DECIMAL(10,2)
+                ) BETWEEN :priceFrom AND :priceTo
                 AND
                 CASE 
                     WHEN :depas IS NOT NULL AND TRIM(:depas) <> '' THEN 
@@ -181,16 +185,22 @@ class ItemManager
             ");
 
 
-            $query->execute([
+            $params = [
                 ":aes" => $_ENV['AES_KEY'],
                 ":client_id" => $token->data[0],
                 ":search" => "%" . $filter['search'] . "%",
                 ":priceFrom" => $filter['filter']['price'][0],
                 ":priceTo" => $filter['filter']['price'][1],
                 ":depas" => implode("','", $filter['filter']['depa'])
-            ]);
+            ];
+            
+
+            $query->execute($params);
 
             $items = $query->fetchAll(PDO::FETCH_ASSOC);
+
+
+            error_log("Items found: " . count($items));
 
             $query2->execute([":client_id" => $token->data[0]]);
             $depa = $query2->fetchAll(PDO::FETCH_ASSOC);
@@ -548,7 +558,8 @@ class ItemManager
     
             $query = $this->db->prepare("
                 SELECT 
-                    quantity
+                    quantity,
+                    id
                 FROM 
                     `items`
                 WHERE 
@@ -577,7 +588,7 @@ class ItemManager
 
             $data = [
                 "type" => "log.inv.item",
-                "id" => $id,
+                "id" => $item["id"],
                 "message" => "",
                 "message_send" => "",
                 "old" => "",
@@ -671,15 +682,54 @@ class ItemManager
                     $data["message_send"] = "Se Establecieron Unidades. Ahora son: " . $quantity[$depo]['Pcs'];
                     $data["total"] = $num;
                     break;  
+                case 'add_samples':
+                    if (!isset($quantity[$depo]['Samples'])) {
+                        $quantity[$depo]['Samples'] = 0;
+                    }
+                    $quantity[$depo]['Samples'] = intval($quantity[$depo]['Samples']) + $num;
+                    $data["message"] = "Se Añadieron Muestras";
+                    $data["message_send"] = "Se Añadieron Muestras. Ahora son: " . $quantity[$depo]['Samples'];
+                    $data["total"] = $num;
+                    break;
+                case 'subtract_samples':
+                    if (!isset($quantity[$depo]['Samples'])) {
+                        $quantity[$depo]['Samples'] = 0;
+                    }
+                    $quantity[$depo]['Samples'] = intval($quantity[$depo]['Samples']) - $num;
+                    $data["message"] = "Se Eliminaron Muestras";
+                    $data["message_send"] = "Se Eliminaron Muestras. Ahora son: " . $quantity[$depo]['Samples'];
+                    $data["total"] = $num;
+                    break;
+                case 'establish_samples':
+                    $quantity[$depo]['Samples'] = $num;
+                    $data["message"] = "Se Establecio un valor de Muestras";
+                    $data["message_send"] = "Se Cambio las Muestras. Ahora son: " . $quantity[$depo]['Samples'];
+                    $data["total"] = $num;
+                    break;
             }
 
             $update_query = $this->db->prepare("UPDATE items SET quantity=:quantity WHERE " . $whereColumn . " =:id");
             $new_quantity = json_encode($quantity);
             $update_query->execute([":id" => $id, ":quantity" => $new_quantity]);
-            $item = $update_query->fetch(PDO::FETCH_ASSOC);
 
             $data["old"] = $old[$depo];
             $data["new"] = $quantity[$depo];
+
+            // Calcular suma total old y new
+            $sum_old = intval($data["old"]["Pcs"] ?? 0);
+            foreach (($data["old"]["Packets"] ?? []) as $k => $v) {
+                $sum_old += intval($k) * intval($v);
+            }
+            $sum_new = intval($data["new"]["Pcs"] ?? 0);
+            foreach (($data["new"]["Packets"] ?? []) as $k => $v) {
+                $sum_new += intval($k) * intval($v);
+            }
+
+            $diff = $sum_new - $sum_old;
+
+            if ($diff !== 0) {
+                (new BatchJobController())->create_or_update_job($item["id"], $diff);
+            }
 
             (new ApiManager())->log_inventory($data);
             
@@ -692,6 +742,8 @@ class ItemManager
             ]));
 
         } catch (PDOException $e) {
+            error_log($e->getMessage());
+
             Flight::halt(503, json_encode([
                 "response" => $e->getMessage()
             ]));

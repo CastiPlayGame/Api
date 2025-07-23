@@ -95,7 +95,9 @@ class DocumentController
                         JSON_VALUE(`items`.`info`, '$.brand') AS brand,
                         JSON_VALUE(`items`.`info`, '$.model') AS model, 
                         JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.hide') AS hide,
-                        JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views') numview,                        JSON_TYPE(JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views')) AS tipo,
+                        CAST(AES_DECRYPT(`items`.`provider`, :aes) AS CHAR) as provider,
+                         `items`.`id_provider`, 
+                        JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views') numview,
                         JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views') AS valor,
                         JSON_LENGTH(JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.views')) AS longitud,
                         JSON_UNQUOTE(CAST(AES_DECRYPT(`items`.`prices`, :aes) AS CHAR)) AS prices
@@ -105,11 +107,6 @@ class DocumentController
                         `departments` AS d 
                         ON d.`uuid` = JSON_VALUE(`items`.`info`, '$.departament')
                     WHERE 
-                        JSON_VALUE(`items`.`info`, '$.departament') IS NOT NULL AND TRIM(JSON_VALUE(`items`.`info`, '$.departament')) <> ''
-
-                        AND JSON_EXTRACT(d.`advanced`, '$.hide') = false                    
-                        AND JSON_EXTRACT(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.hide') = false
-                        AND
                         CASE 
                             WHEN :depas IS NOT NULL AND TRIM(:depas) <> '' THEN 
                                 JSON_VALUE(`items`.`info`, '$.departament') IN (:depas)
@@ -129,7 +126,7 @@ class DocumentController
                     $items = (new ExcelControllerData())->INV_001($query->fetchAll(PDO::FETCH_ASSOC));
 
                     $data = [
-                        (new DocumentComplements())->adjustTitles(["Codigo", "Descripcion", "Marca", "Modelo", "Departamento", "Oculto", "Lista Negra", "Total", "Muestra", "Precio*4@"]),
+                        (new DocumentComplements())->adjustTitles(["Proveedor", "Referencia", "Costo Neto", "Costo Total", "-","Codigo", "Descripcion", "Marca", "Modelo", "Departamento", "Oculto", "Lista Negra", "Total", "Muestra", "Precio*4@"]),
                         ...$items
                     ];
 
@@ -170,7 +167,7 @@ class DocumentController
                         FROM 
                             sales 
                         WHERE 
-                            NOT JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (3,4)
+                            NOT JSON_EXTRACT(`event`,CONCAT(\"$[\",JSON_LENGTH(`event`)-1,\"].event\")) IN (4)
                             AND (
                                 (:startDate IS NOT NULL AND TRIM(:startDate) <> '' AND 
                                 :endDate IS NOT NULL AND TRIM(:endDate) <> '' AND 
@@ -198,6 +195,46 @@ class DocumentController
                     $table = new Table('A1:' . chr(64 + count($data[0])) . count($data), 'Table1');
                 }
                 if ($typefnz == "FNZ_002") {
+                    // Notas de clientes de productos
+
+                    $query = $this->db->prepare("
+                    SELECT 
+                        uuid,
+                        type,
+                        nr,
+                        JSON_VALUE(CAST(AES_DECRYPT(`info`, :aes) AS CHAR), '$[2]') as name,
+                        JSON_VALUE(advanced,'$.additionals.credit') as credit, 
+                        CAST(AES_DECRYPT(`paids`, :aes) AS CHAR) as paids,
+                        buy,
+                        JSON_UNQUOTE(JSON_EXTRACT(`event`, CONCAT(\"$[\", JSON_LENGTH(`event`)-1, \"].event\"))) as event,
+                        DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`event`, CONCAT(\"$[\", JSON_LENGTH(`event`)-1, \"].date\"))), '%m/%d/%Y %h:%i %p') AS date 
+                    FROM 
+                        sales 
+                    WHERE 
+                        (
+                            (:startDate IS NOT NULL AND TRIM(:startDate) <> '' AND 
+                            :endDate IS NOT NULL AND TRIM(:endDate) <> '' AND 
+                            DATE_FORMAT(JSON_UNQUOTE(JSON_EXTRACT(`event`, CONCAT(\"$[\", JSON_LENGTH(`event`)-1, \"].date\"))), '%Y-%m-%d') BETWEEN :startDate AND :endDate)
+                            OR 
+                            (:startDate IS NULL OR TRIM(:startDate) = '' OR 
+                            :endDate IS NULL OR TRIM(:endDate) = '')
+                        )
+                    ");
+                    $query->execute([
+                        ":aes" => $_ENV['AES_KEY'],
+                        ":startDate" => $filter["startDate"],
+                        ":endDate" => $filter["endDate"],
+                    ]);
+                    $list = (new ExcelControllerData())->FNZ_002($query->fetchAll(PDO::FETCH_ASSOC));
+
+
+                    $data = [
+                        ["Tipo", "Numero", "Cliente", "Total", "Costo", "Credito", "Fecha", "Vencimiento", "Status", "Cobranza Status"],
+                        ...$list
+                    ];
+
+                    $activeWorksheet->fromArray($data, NULL, 'A1');
+                    $table = new Table('A1:' . chr(64 + count($data[0])) . count($data), 'Table1');
                 }
                 $tableStyle = new TableStyle();
                 $tableStyle->setTheme(TableStyle::TABLE_STYLE_LIGHT1);
@@ -213,8 +250,7 @@ class DocumentController
                     $items = $this->db->prepare("
                         SELECT 
                             `items`.`id` AS id, 
-                            COALESCE(JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.provider'), '') AS provider,
-                            COALESCE(JSON_VALUE(CAST(AES_DECRYPT(`items`.`advanced`, :aes) AS CHAR), '$.provider_price'), '') AS provider_price,
+                            CAST(AES_DECRYPT(`items`.`provider`, :aes) AS CHAR) as provider,
                             COALESCE(`items`.`id_provider`, '') AS id_provider,
                             quantity, 
                             JSON_VALUE(`items`.`info`, '$.departament') AS depa,

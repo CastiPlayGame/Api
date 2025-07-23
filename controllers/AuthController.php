@@ -23,9 +23,20 @@ class AuthManager
         $headers = apache_request_headers();
 
         try {
-            $authorization = $headers["Authorization"];
+            // Permitir tanto 'authorization' como 'Authorization'
+            $authorization = null;
+            if (isset($headers["authorization"])) {
+                $authorization = $headers["authorization"];
+            } elseif (isset($headers["Authorization"])) {
+                $authorization = $headers["Authorization"];
+            } else {
+                Flight::halt(403, json_encode([
+                    "response" => "No se encontró el header Authorization"
+                ]));
+            }
+
             $authorizationArray = explode(" ", $authorization);
-            $token = $authorizationArray[1];
+            $token = $authorizationArray[1] ?? null;
 
             if($_ENV['API_KEY_ADMIN'] == $token){
                 return (object)[

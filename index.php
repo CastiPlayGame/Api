@@ -4,6 +4,7 @@ use Dotenv\Dotenv;
 
 require 'vendor/autoload.php';
 // Controllers
+require 'controllers/BatchJobController.php';
 require 'controllers/AuthController.php';
 require 'controllers/ItemController.php';
 require 'controllers/SaleController.php';
@@ -12,13 +13,9 @@ require 'controllers/DocumentController.php';
 require 'controllers/ApiController.php';
 require 'controllers/SystemController.php';
 
-
 // Pines Sys
 require 'controllers/pineSys/ItemController.php';
 require 'controllers/pineSys/DepartamentController.php';
-
-
-
 
 // Utils
 require 'utils/ApiUtils.php';
@@ -52,7 +49,7 @@ Flight::route('GET /item/img/@id/@img', ['ItemManager', 'get_img']);
 
 
 
-// ITEMS PINES SYS
+// ITEMS ADMIN
 
 Flight::route('GET /s/item/all', ['PinesSys_ItemManager', 'all_item']);
 Flight::route('GET /s/item/@uuid', ['PinesSys_ItemManager', 'get_item']);
@@ -70,7 +67,7 @@ Flight::route('PATCH /s/item/@uuid/provider', ['PinesSys_ItemManager', 'update_i
 Flight::route('GET /s/item/@uuid/black_list', ['PinesSys_ItemManager', 'get_item_black_list']);
 Flight::route('PATCH /s/item/@uuid/black_list', ['PinesSys_ItemManager', 'update_item_blacklist']);
 
-// DEPARTAMENT PINES SYS
+// DEPARTAMENT ADMIN
 Flight::route('GET /s/departament/all', ['PinesSys_DepartamentManager', 'all_item']);
 
 
@@ -98,41 +95,61 @@ Flight::route('POST /logs/inv', ['ApiManager', 'log_inventory']);
 //ADMIN 
 Flight::route('GET /system/order', ['SystemManager', 'get_order']);
 
+// BATCH JOBS ADMIN
+Flight::route('GET /batch_jobs', ['BatchJobController', 'get_all']);
+Flight::route('POST /batch_jobs', ['BatchJobController', 'upsert']);
+Flight::route('PATCH /batch_jobs/@id', ['BatchJobController', 'update_status']);
+Flight::route('DELETE /batch_jobs/@id', ['BatchJobController', 'cancel']);
 
 Flight::before('start', function () {
+    // Set CORS headers explicitly
     header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+    header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-    if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-        http_response_code(200);
+    // Log request for debugging, including query params and body
+    $method = $_SERVER['REQUEST_METHOD'];
+    $url = Flight::request()->url;
+    $queryParams = json_encode(Flight::request()->query->getData());
+    $body = json_encode(Flight::request()->data->getData());
+    error_log("Request: $method $url | Query: $queryParams | Body: $body");
+
+    // Handle OPTIONS request
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        error_log("Handling OPTIONS for " . Flight::request()->url);
+        http_response_code(204);
         exit();
-    }    
-    
+    }
+
     $currentPath = Flight::request()->url;
+
     $adminPaths = [
+        '/s/',
+        '/system/',
+        '/batch_jobs',
         '/health',
         '/health/resource',
         '/logs/inv',
         '/item/img/upload',
         '/item/img/delete',
-        '/system/order'
+        // Puedes añadir más aquí si tienes otras rutas admin
     ];
 
+    // Skip token validation for /auth
     if ($currentPath !== '/auth') {
         $tokenInfo = (new AuthManager())->validateToken();
         Flight::set('token', $tokenInfo);
     }
 
-    foreach ($adminPaths as $excludedPath) {
-        if (strpos($currentPath, $excludedPath) === 0) {
-            return;
+    // Proteger rutas admin si el path comienza con alguno de los adminPaths
+    foreach ($adminPaths as $adminPath) {
+        if (strpos($currentPath, $adminPath) === 0) {
+            $tokenInfo = Flight::get('token');
+            if (!isset($tokenInfo->data[3]) || $tokenInfo->data[3] !== 'admin') {
+                Flight::halt(403, json_encode(["response" => 'Acceso denegado']));
+            }
+            break;
         }
-    }
-
-    // Verificar si el usuario es administrador
-    if (in_array($currentPath, $adminPaths) && $tokenInfo->data[3] !== 'admin') {
-        Flight::halt(403, json_encode(["response" => 'Acceso denegado']));
     }
 
     (new ApiManager())->log_request();
