@@ -193,7 +193,8 @@ class ItemManager
                 ":priceTo" => $filter['filter']['price'][1],
                 ":depas" => implode("','", $filter['filter']['depa'])
             ];
-            
+
+            error_log(json_encode($params));
 
             $query->execute($params);
 
