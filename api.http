@@ -1,42 +1,264 @@
-@token = NS20gEo80zV6F3WoxFOR5UKgztqilJ63
+@token_admin = NS20gEo80zV6F3WoxFOR5UKgztqilJ63
+@token_user = 
+@base_url = http://multipartes.ddnsfree.com:2045/newApi
+@uuid_item = 68d0f64f-7af5-479a-8761-751b899ba59c
 
+### rutas protegidas con JWT
 
-POST http://localhost/newApi/document/view/xlsx/sts
-Authorization: Bearer {{token}}
+### Obtener todos los items de la base de datos
+# @name all_items
+# @body: {
+#   "filter": {
+#     "search": "string: texto a buscar en el nombre o id del item. Ejemplo: 'bujia'",
+#     "filter": {
+#       "price": "[min, max] array de number: rango de precios. Ejemplo: [0, 5000]",
+#       "depa": "array de string (uuid): lista de uuids de los departamentos a filtrar. Ejemplo: ['dpt-uuid-1', 'dpt-uuid-2']",
+#       "stock": "number: filtro de stock. 0: Todos, 1: >=500, 2: >=2500, 3: >=5000, 4: >=10000, 5: true (solo con stock disponible). Ejemplo: 0"
+#     }
+#   }
+# }
+POST {{base_url}}/item/all
+Authorization: Bearer {{token_user}}
+content-type: application/json
 
 {
-    "type": "STS_002",
-    "filter" {
-        "year": 2024
+    "filter": {
+        "search": "",
+        "filter": {
+            "price": [0, 30],
+            "depa": [],
+            "stock": 4
+        }
     }
 }
 
-### Obtener todos los batch jobs pendientes
-GET http://localhost/newApi/batch_jobs
-Authorization: Bearer {{token}}
+### Obtener un item por su uuid
+# @name get_item
+# @params: 
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+POST {{base_url}}/item/{{uuid_item}}
+Authorization: Bearer {{token_user}}
 
-### Crear o actualizar (upsert) un batch job
-POST http://localhost/newApi/batch_jobs
-Authorization: Bearer {{token}}
-Content-Type: application/json
+
+### Obtener la cantidad de un item (modo admin)
+# @name get_item_quantity_admin
+# @params:
+#   id: string (ID del item, por ejemplo: "12345")
+POST {{base_url}}/item/quantity/code/{{uuid_item}}
+Authorization: Bearer {{token_user}}
+
+
+### Modificar cantidad de paquetes/unidades de un item
+# @name quantity_packets
+# @params:
+#   id: string (ID o UUID del item)
+# @body: {
+#   "operation_type": "string: tipo de operación (create_packet, delete_packet, add_packs, subtract_packs, establish_packs, add_pcs, subtract_pcs, establish_pcs, add_samples, subtract_samples, establish_samples)",
+#   "deposit": "number: depósito (opcional, default 1)",
+#   "packet_id": "string: id del paquete (si aplica)",
+#   "quantity": "number: cantidad a modificar (si aplica)"
+# }
+POST {{base_url}}/item/packets/quantity/{{uuid_item}}
+Authorization: Bearer {{token_user}}
+content-type: application/json
 
 {
-    "code": "GC-050",
-    "content": {
-        "download": 50,
-        "upload": 100
-    }
+  "operation_type": "",
+  "deposit": 1,
+  "packet_id": "",
+  "quantity": 0
 }
 
-### Actualizar estado de un batch job
-PATCH http://localhost/newApi/batch_jobs/1
-Authorization: Bearer {{token}}
-Content-Type: application/json
+
+### Obtener la cantidad de un item (usuario)
+# @name get_item_quantity
+# @params:
+#   uuid: string (UUID del item)
+POST {{base_url}}/item/quantity/{{uuid_item}}
+Authorization: Bearer {{token_user}}
+
+
+### Subir imagen a un item
+# @name upload_img
+# @body: {
+#   "uuid": "string: UUID del item",
+#   "file": "archivo: imagen JPEG o PNG (máx 10MB)"
+# }
+POST {{base_url}}/item/img/upload
+Authorization: Bearer {{token_user}}
+Content-Type: multipart/form-data
+
+
+### Eliminar imagen de un item
+# @name del_img
+# @body: {
+#   "uuid": "string: UUID del item",
+#   "img": "number: índice de la imagen a eliminar"
+# }
+POST {{base_url}}/item/img/delete
+Authorization: Bearer {{token_user}}
+content-type: application/json
 
 {
-    "status": "completed"
+  "uuid": "",
+  "img": 0
 }
 
-### Cancelar (eliminar lógico) un batch job
-DELETE http://localhost/newApi/batch_jobs/1
-Authorization: Bearer {{token}}
+
+### Obtener la imagen principal de un item por código
+# @name get_by_code_img
+# @params:
+#   id: string (ID del item)
+GET {{base_url}}/item/img/code/{{uuid_item}}
+Authorization: Bearer {{token_user}}
+
+
+### Obtener una imagen específica de un item
+# @name get_img
+# @params:
+#   id: string (ID del item)
+#   img: string (nombre de la imagen)
+GET {{base_url}}/item/img/{{uuid_item}}/{{img}}
+Authorization: Bearer {{token_user}}
+
+
+### Ruta de Login
+# @name newAuth
+# @body: {
+#   "username": "string: nombre de usuario",
+#   "password": "string: contraseña"
+# }
+POST {{base_url}}/auth
+content-type: application/json
+
+{
+    "username": "admin",
+    "password": "123456"
+}
+
+
+### Ruta de Tienda
+# @name push_buy
+
+
+
+
+### Rutas ADMIN
+
+### Obtener todos los items de la base de datos
+# @name all_items
+# @body: {
+#   "search": "string: texto a buscar en el nombre o id del item. Ejemplo: 'bujia'",
+#   "departaments": "array de string (uuid): lista de uuids de los departamentos a filtrar. Ejemplo: ['dpt-uuid-1', 'dpt-uuid-2']",
+#   "stock_min": "number: stock mínimo. Ejemplo: 0",
+#   "stock_max": "number: stock máximo. Ejemplo: 10000"
+# }
+GET {{base_url}}/s/item/all
+Authorization: Bearer {{token_admin}}
+content-type: application/json
+
+{
+    "search": "",
+    "departaments": []
+    //"stock_min": 0,
+    //"stock_max": 10000
+}
+
+### Obtener un item por su uuid
+# @name get_item
+# @params: 
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+GET {{base_url}}/s/item/{{uuid_item}}
+Authorization: Bearer {{token_admin}}
+
+### Modificar información de un item
+# @name update_item_info
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+# @body: {
+#   "departament": "string: uuid del departamento",
+#   "brand": "string: marca del item",
+#   "model": "string: modelo del item",
+#   "desc": "string: descripción del item",
+#   "hide": "boolean: true si se debe ocultar el item, false si no"
+# }
+PATCH {{base_url}}/s/item/{{uuid_item}}
+Content-Length: application/json
+Authorization: Bearer {{token_admin}}
+
+{
+    "departament": "",
+    "brand": "",
+    "model": "",
+    "desc": "",
+    "hide": false
+}
+
+### Eliminar un item
+# @name delete_item
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+DELETE {{base_url}}/s/item/{{uuid_item}}
+Authorization: Bearer {{token_admin}}
+
+### Obtener la cantidad de un item
+# @name get_item_quantity
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+GET {{base_url}}/s/item/quantity/{{uuid_item}}
+Authorization: Bearer {{token_admin}}
+
+### Obtener los precios de un item
+# @name get_item_prices
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+GET {{base_url}}/s/item/{{uuid_item}}/prices
+Authorization: Bearer {{token_admin}}
+
+### Actulizar los precios de un item
+# @name update_item_prices
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+# @body: {
+#   "price1": "number: precio 1",
+#   "price2": "number: precio 2",
+#   "price3": "number: precio 3",
+#   "price4": "number: precio 4"
+# }
+PATCH {{base_url}}/s/item/{{uuid_item}}/prices
+Content-Length: application/json
+Authorization: Bearer {{token_admin}}
+
+{
+    "price1": 0,
+    "price2": 0,
+    "price3": 0,
+    "price4": 0
+}
+
+### Obtener la lista negra de un item
+# @name get_item_black_list
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+GET {{base_url}}/s/item/{{uuid_item}}/black_list
+Authorization: Bearer {{token_admin}}
+
+### Actualizar la lista negra de un item
+# @name update_item_black_list
+# @params:
+#   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
+# @body: {
+#   "blacklist": "array de string (id): lista de usuarios a agregar a la lista negra"
+# }
+PATCH {{base_url}}/s/item/{{uuid_item}}/black_list
+Content-Length: application/json
+Authorization: Bearer {{token_admin}}
+
+{
+    "blacklist": []
+}
+
+### Obtener todos los departamentos
+# @name all_departaments
+GET {{base_url}}/s/departament/all
+Authorization: Bearer {{token_admin}}

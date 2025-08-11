@@ -68,7 +68,7 @@ Flight::route('GET /s/item/@uuid/black_list', ['PinesSys_ItemManager', 'get_item
 Flight::route('PATCH /s/item/@uuid/black_list', ['PinesSys_ItemManager', 'update_item_blacklist']);
 
 // DEPARTAMENT ADMIN
-Flight::route('GET /s/departament/all', ['PinesSys_DepartamentManager', 'all_item']);
+Flight::route('GET /s/departament/all', ['PinesSys_DepartamentManager', 'all_departaments']);
 
 
 
