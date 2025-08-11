@@ -266,6 +266,22 @@ class ExcelControllerData
         return $items;
     }
 
+    private function search_code($itemCode, $itemIdToDepartment)
+    {
+        if (array_key_exists($itemCode, $itemIdToDepartment)) {
+            return $itemIdToDepartment[$itemCode];
+        }
+
+        $normalizedCode = (string) $itemCode;
+        foreach ($itemIdToDepartment as $id => $department) {
+            if ((string) $id === $normalizedCode) {
+                return $department;
+            }
+        }
+
+        return null;
+    }
+
     public function STS_001($Priorityyear, $items, $sales)
     {
                 function updateTotalCost($provider) {
@@ -329,6 +345,8 @@ class ExcelControllerData
             if ($date === null) {
                 continue;
             }
+            
+            error_log("Processing sale with date: $date");
 
             $timestamp = strtotime($date);
             $month = date("n", $timestamp) - 1;
@@ -571,11 +589,16 @@ class ExcelControllerData
             }
 
             $timestamp = strtotime($date);
-            $month = date("n", $timestamp);
+            $month = date("n", $timestamp) - 1;
+            $year = date("Y", $timestamp);
 
-            if ($Prioritymonth != $month) {
+            // Usar el año actual
+            $currentYear = date("Y");
+            if ($currentYear != $year && $Prioritymonth != $month) {
                 continue;
             }
+
+
 
             foreach ($buyData as $c) {
                 foreach ($c["packs"] as $k => $v) {
