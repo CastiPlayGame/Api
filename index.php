@@ -37,8 +37,6 @@ Flight::register('db', 'PDO', array("mysql:host=$dbHost;dbname=$dbName", $dbUser
 // ITEMS
 Flight::route('POST /item/all', ['ItemManager', 'all_item']);
 Flight::route('POST /item/@uuid', ['ItemManager', 'get_item']);
-Flight::route('POST /item/quantity/code/@id', ['ItemManager', 'get_item_quantity_admin']);
-
 Flight::route('POST /item/packets/quantity/@id', ['ItemManager', 'quantity_packets']);
 Flight::route('POST /item/quantity/@uuid', ['ItemManager', 'get_item_quantity']);
 
