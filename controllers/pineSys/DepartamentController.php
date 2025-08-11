@@ -10,7 +10,7 @@ class PinesSys_DepartamentManager
         $this->db = Flight::db();
     }
 
-    public function all_item()
+    public function all_departaments()
     {
 
         try {
