@@ -199,8 +199,8 @@ Content-Type: application/json
 ### Obtener un pedido por su uuid
 # @name get_sale
 # @params:
-#   type: string (type de venta. 0: todos, 1: venta, -1: retencion)
-
+#   type: string (type de venta. r: pedidos, s: compras)
+#   uuid: string (UUID del pedido o compra)
 
 
 ### Rutas ADMIN
