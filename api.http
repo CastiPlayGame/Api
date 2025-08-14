@@ -1,5 +1,5 @@
 @token_admin = NS20gEo80zV6F3WoxFOR5UKgztqilJ63
-@token_user = 
+@token_user = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTUyMDI0MjgsImRhdGEiOls0MSwiamF2aWptIiwiYWRqYXZpMjEiLCJ1c2VyIl19.VNZm-gncO3_dkWvKluLXr0SmeIr_DOVA0mWfpflNBT4
 @base_url = http://multipartes.ddnsfree.com:2045/newApi
 @uuid_item = 68d0f64f-7af5-479a-8761-751b899ba59c
 
@@ -19,7 +19,8 @@
 # }
 POST {{base_url}}/item/all
 Authorization: Bearer {{token_user}}
-content-type: application/json
+Content-Type: application/json
+X-App-Version: 1.0.0
 
 {
     "filter": {
@@ -38,14 +39,15 @@ content-type: application/json
 #   uuid: string (UUID del item, por ejemplo: "123e4567-e89b-12d3-a456-426614174000")
 POST {{base_url}}/item/{{uuid_item}}
 Authorization: Bearer {{token_user}}
+X-App-Version: 1.0.0
 
-
-### Obtener la cantidad de un item (modo admin)
+### Obtener la cantidad de un item
 # @name get_item_quantity_admin
 # @params:
 #   id: string (ID del item, por ejemplo: "12345")
-POST {{base_url}}/item/quantity/code/{{uuid_item}}
+POST {{base_url}}/item/quantity/{{uuid_item}}
 Authorization: Bearer {{token_user}}
+X-App-Version: 1.0.0
 
 
 ### Modificar cantidad de paquetes/unidades de un item
@@ -60,33 +62,37 @@ Authorization: Bearer {{token_user}}
 # }
 POST {{base_url}}/item/packets/quantity/{{uuid_item}}
 Authorization: Bearer {{token_user}}
-content-type: application/json
+Content-Type: application/json
+X-App-Version: 1.0.0
 
 {
-  "operation_type": "",
-  "deposit": 1,
-  "packet_id": "",
-  "quantity": 0
+  "operation_type": "subtract_packs",
+  // "deposit": 1,
+  "packet_id": "25",
+  "quantity": 1
 }
-
-
-### Obtener la cantidad de un item (usuario)
-# @name get_item_quantity
-# @params:
-#   uuid: string (UUID del item)
-POST {{base_url}}/item/quantity/{{uuid_item}}
-Authorization: Bearer {{token_user}}
-
 
 ### Subir imagen a un item
 # @name upload_img
-# @body: {
-#   "uuid": "string: UUID del item",
-#   "file": "archivo: imagen JPEG o PNG (máx 10MB)"
-# }
+# @body: form-data; 
+#   "uuid": "string (UUID del item)",
+#   "file": "archivo (imagen JPEG o PNG, máx 10MB)"
 POST {{base_url}}/item/img/upload
 Authorization: Bearer {{token_user}}
-Content-Type: multipart/form-data
+X-App-Version: 1.0.0
+Content-Type: multipart/form-data; boundary=----MyBoundary
+
+------MyBoundary
+Content-Disposition: form-data; name="uuid"
+
+{{uuid_item}}
+------MyBoundary
+Content-Disposition: form-data; name="file"; filename="imagen.png"
+Content-Type: image/png
+
+C:/Users/Admin/Documents/imagen.png
+------MyBoundary--
+
 
 
 ### Eliminar imagen de un item
@@ -97,7 +103,7 @@ Content-Type: multipart/form-data
 # }
 POST {{base_url}}/item/img/delete
 Authorization: Bearer {{token_user}}
-content-type: application/json
+Content-Type: application/json
 
 {
   "uuid": "",
@@ -129,11 +135,12 @@ Authorization: Bearer {{token_user}}
 #   "password": "string: contraseña"
 # }
 POST {{base_url}}/auth
-content-type: application/json
+Content-Type: application/json
+X-App-Version: 1.0.0
 
 {
-    "username": "admin",
-    "password": "123456"
+    "username": "javijm",
+    "password": "adjavi21"
 }
 
 
@@ -155,7 +162,7 @@ content-type: application/json
 # }
 GET {{base_url}}/s/item/all
 Authorization: Bearer {{token_admin}}
-content-type: application/json
+Content-Type: application/json
 
 {
     "search": "",
@@ -183,7 +190,7 @@ Authorization: Bearer {{token_admin}}
 #   "hide": "boolean: true si se debe ocultar el item, false si no"
 # }
 PATCH {{base_url}}/s/item/{{uuid_item}}
-Content-Length: application/json
+Content-Type: application/json
 Authorization: Bearer {{token_admin}}
 
 {
@@ -226,7 +233,7 @@ Authorization: Bearer {{token_admin}}
 #   "price4": "number: precio 4"
 # }
 PATCH {{base_url}}/s/item/{{uuid_item}}/prices
-Content-Length: application/json
+Content-Type: application/json
 Authorization: Bearer {{token_admin}}
 
 {
@@ -251,7 +258,7 @@ Authorization: Bearer {{token_admin}}
 #   "blacklist": "array de string (id): lista de usuarios a agregar a la lista negra"
 # }
 PATCH {{base_url}}/s/item/{{uuid_item}}/black_list
-Content-Length: application/json
+Content-Type: application/json
 Authorization: Bearer {{token_admin}}
 
 {

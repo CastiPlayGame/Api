@@ -105,12 +105,26 @@ Flight::before('start', function () {
     header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-    // Log request for debugging, including query params and body
+
+
+    $headers = array();
+    foreach (apache_request_headers() as $key => $value) {
+        // Convert header names to standard format: First letter uppercase, dashes preserved, rest lowercase
+        $key = strtolower($key);
+
+        $key = ucwords(strtolower($key), '-');
+        $headers[$key] = $value;
+    }
+    Flight::set('headers', $headers);
+
+    // Log request for debugging, including query params, body, and headers
     $method = $_SERVER['REQUEST_METHOD'];
     $url = Flight::request()->url;
     $queryParams = json_encode(Flight::request()->query->getData());
     $body = json_encode(Flight::request()->data->getData());
-    error_log("Request: $method $url | Query: $queryParams | Body: $body");
+    $headers = Flight::get('headers');
+    
+    error_log("Request: $method $url | Query: $queryParams | Body: $body | Headers: " .  json_encode($headers) );
 
     // Handle OPTIONS request
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

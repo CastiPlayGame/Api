@@ -59,8 +59,16 @@ class ExcelControllerData
                 return number_format($total, 6, '.', '');
             }
         foreach ($items as &$item) {
+            error_log("Processing item: " . $item["id"] . " " . json_encode($item));
             $item["quantity"] = json_decode($item["quantity"], true);
-            $total = $this->itemUtils->item_quantity($this->itemUtils->mergePackets($item["quantity"], true));
+
+            $total = 0;
+            $samples = 0;
+            if (!empty($item["quantity"]) && count($item["quantity"]) > 0) {
+                $total = $this->itemUtils->item_quantity($this->itemUtils->mergePackets($item["quantity"], true));
+                $samples = array_key_exists("Samples", $item["quantity"][1]) ? $item["quantity"][1]["Samples"] : 0;
+            }
+
 
             $item["prices"] = json_decode($item["prices"], true);
             $item["prices"] = array_values(array_replace(array_fill(0, 4, ""), $item["prices"]));
@@ -83,7 +91,7 @@ class ExcelControllerData
                 $item["hide"],
                 $item["numview"],
                 $total,
-                array_key_exists("Samples", $item["quantity"][1]) ? $item["quantity"][1]["Samples"] : 0,
+                $samples,
                 ...$item["prices"]
             ];
         }
