@@ -1,5 +1,5 @@
 @token_admin = NS20gEo80zV6F3WoxFOR5UKgztqilJ63
-@token_user = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTUyMDI0MjgsImRhdGEiOls0MSwiamF2aWptIiwiYWRqYXZpMjEiLCJ1c2VyIl19.VNZm-gncO3_dkWvKluLXr0SmeIr_DOVA0mWfpflNBT4
+@token_user = eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTUyNjUyOTYsImRhdGEiOls0MSwiamF2aWptIiwiYWRqYXZpMjEiLCJ1c2VyIl19.NvDKkKoDoPHtEWG4kFjE73jN8YXilfMGwleW2LF1gdY
 @base_url = http://multipartes.ddnsfree.com:2045/newApi
 @uuid_item = 68d0f64f-7af5-479a-8761-751b899ba59c
 
@@ -66,49 +66,13 @@ Content-Type: application/json
 X-App-Version: 1.0.0
 
 {
-  "operation_type": "subtract_packs",
+  "operation_type": "add_packs",
   // "deposit": 1,
   "packet_id": "25",
   "quantity": 1
 }
 
-### Subir imagen a un item
-# @name upload_img
-# @body: form-data; 
-#   "uuid": "string (UUID del item)",
-#   "file": "archivo (imagen JPEG o PNG, máx 10MB)"
-POST {{base_url}}/item/img/upload
-Authorization: Bearer {{token_user}}
-X-App-Version: 1.0.0
-Content-Type: multipart/form-data; boundary=----MyBoundary
 
-------MyBoundary
-Content-Disposition: form-data; name="uuid"
-
-{{uuid_item}}
-------MyBoundary
-Content-Disposition: form-data; name="file"; filename="imagen.png"
-Content-Type: image/png
-
-C:/Users/Admin/Documents/imagen.png
-------MyBoundary--
-
-
-
-### Eliminar imagen de un item
-# @name del_img
-# @body: {
-#   "uuid": "string: UUID del item",
-#   "img": "number: índice de la imagen a eliminar"
-# }
-POST {{base_url}}/item/img/delete
-Authorization: Bearer {{token_user}}
-Content-Type: application/json
-
-{
-  "uuid": "",
-  "img": 0
-}
 
 
 ### Obtener la imagen principal de un item por código
@@ -302,6 +266,44 @@ Authorization: Bearer {{token_admin}}
     "price3": 0,
     "price4": 0
 }
+
+### Subir imagen a un item
+# @name upload_img
+# @body: form-data; 
+#   "uuid": "string (UUID del item)",
+#   "file": "archivo (imagen JPEG o PNG, máx 10MB)"
+POST {{base_url}}/s/item/img/upload
+Authorization: Bearer {{token_admin}}
+Content-Type: multipart/form-data; boundary=----MyBoundary
+
+------MyBoundary
+Content-Disposition: form-data; name="uuid"
+
+{{uuid_item}}
+------MyBoundary
+Content-Disposition: form-data; name="file"; filename="imagen.png"
+Content-Type: image/png
+
+C:/Users/Admin/Documents/imagen.png
+------MyBoundary--
+
+
+
+### Eliminar imagen de un item
+# @name del_img
+# @body: {
+#   "uuid": "string: UUID del item",
+#   "img": "number: índice de la imagen a eliminar"
+# }
+POST {{base_url}}/s/item/img/delete
+Authorization: Bearer {{token_user}}
+Content-Type: application/json
+
+{
+  "uuid": "",
+  "img": 0
+}
+
 
 ### Obtener la lista negra de un item
 # @name get_item_black_list

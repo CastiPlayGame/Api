@@ -40,14 +40,14 @@ Flight::route('POST /item/@uuid', ['ItemManager', 'get_item']);
 Flight::route('POST /item/packets/quantity/@id', ['ItemManager', 'quantity_packets']);
 Flight::route('POST /item/quantity/@uuid', ['ItemManager', 'get_item_quantity']);
 
-Flight::route('POST /item/img/upload', ['ItemManager', 'upload_img']);
-Flight::route('POST /item/img/delete', ['ItemManager', 'del_img']);
 Flight::route('GET /item/img/code/@id', ['ItemManager', 'get_by_code_img']);
 Flight::route('GET /item/img/@id/@img', ['ItemManager', 'get_img']);
 
 
 
 // ITEMS ADMIN
+Flight::route('POST /s/item/img/upload', ['ItemManager', 'upload_img']);
+Flight::route('POST /s/item/img/delete', ['ItemManager', 'del_img']);
 
 Flight::route('GET /s/item/all', ['PinesSys_ItemManager', 'all_item']);
 Flight::route('GET /s/item/@uuid', ['PinesSys_ItemManager', 'get_item']);
@@ -141,9 +141,7 @@ Flight::before('start', function () {
         '/batch_jobs',
         '/health',
         '/health/resource',
-        '/logs/inv',
-        '/item/img/upload',
-        '/item/img/delete',
+        '/logs/inv'
         // Puedes añadir más aquí si tienes otras rutas admin
     ];
 
