@@ -146,8 +146,68 @@ X-App-Version: 1.0.0
 
 ### Ruta de Tienda
 # @name push_buy
+# @body: {
+#   "cart": array de objetos: [
+#     {
+#       "uuid": "string: uuid del item",
+#       "quantity": array de objetos: {
+#         "25": "number: cantidad del item",
+#         "50": "number: cantidad del item",
+#         "100": "number: cantidad del item"
+#         ...
+#       },
+#       "id": "string: id o codigo del item"
+#     },
+#     ...
+#   ],
+#   "name": "string: nombre del pedido"
+# }
+POST {{base_url}}/store/push
+Authorization: Bearer {{token_user}}
+Content-Type: application/json
+
+{
+  "cart": "{\"68d0f64f-7af5-479a-8761-751b899ba59c\":{\"quantity\":{\"25\":2},\"id\":\"2288\"},\"e7c8cf09-aefd-4734-a5bb-522cd9a82943\":{\"quantity\":{\"25\":2},\"id\":\"GV-005A\"}}",
+  "name": "pedido"
+}
+
+### Obtener información de un pedido (cart de uuid)
+# @name get_info
+# @body: {
+#   "cart": array de string (uuid): [
+#     "xxxx-xxxx-xxxx-xxxx",
+#     "xxxx-xxxx-xxxx-xxxx"
+#   ]
+# }
+POST {{base_url}}/store/info
+Authorization: Bearer {{token_user}}
+Content-Type: application/json
+
+{
+  "cart": [
+    "68d0f64f-7af5-479a-8761-751b899ba59c",
+    "53824532-6f79-4e7e-b4c2-b83fcb92d266"
+  ]
+}
+
+### Obtener todos los pedidos
+# @name all_sales
+# @params:
+#   type_sales: string (type de venta. 0: pedidos, 1: ventas, -1: anulados)
+GET {{base_url}}/sale/all/
+Authorization: Bearer {{token_user}}
+Content-Type: application/json
+
+{
+  "type_sales": 0
+}
 
 
+### Obtener un pedido por su uuid
+# @name get_sale
+# @params:
+#   type: string (type de venta. r: pedidos, s: compras)
+#   uuid: string (UUID del pedido o compra)
 
 
 ### Rutas ADMIN
