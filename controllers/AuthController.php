@@ -23,16 +23,13 @@ class AuthManager
         $headers = Flight::get('headers');
 
         try {
-            $authorization = null;
-            if (isset($headers["Authorization"])) {
-                $authorization = $headers["Authorization"];
-            } else {
-                Flight::halt(403, json_encode([
+            if (!isset($headers["Authorization"])) {
+                Flight::jsonHalt([
                     "response" => "No se encontró el header Authorization"
-                ]));
+                ], 403);
             }
 
-            $authorizationArray = explode(" ", $authorization);
+            $authorizationArray = explode(" ", $headers["Authorization"]);
             $token = $authorizationArray[1] ?? null;
 
             if($_ENV['API_KEY_ADMIN'] == $token){
@@ -43,9 +40,9 @@ class AuthManager
 
             return JWT::decode($token, new Key($this->SECRET_KEY, 'HS256'));
         } catch (\Throwable $th) {
-            Flight::halt(403, json_encode([
+            Flight::jsonHalt([
                 "response" => $th->getMessage()
-            ]));
+            ], 403);
         }
     }
 
@@ -59,12 +56,17 @@ class AuthManager
             return $info;
         }
         
-        $authorization = $headers["X-App-Version"];
+        if (!isset($headers["X-App-Version"])) {
+            Flight::jsonHalt([
+                "response" => "No se encontró el header X-App-Version"
+            ], 403);
+        }
+        $appVersion = $headers["X-App-Version"];
 
-        if ($authorization != '1.0.0'){
-            Flight::halt(401, json_encode([
+        if ($appVersion != '1.0.0'){
+            Flight::jsonHalt([
                 "response" => 'Hay una Nueva Actualizacion'
-            ]));
+            ], 401);
         }
         
         $query = $this->db->prepare("
@@ -84,35 +86,35 @@ class AuthManager
             $user = $query->fetch();
 
             if (!$user){
-                Flight::halt(403, json_encode([
+                Flight::jsonHalt([
                     "response" => 'No autorizado'
-                ]));
+                ], 403);
             }
             if ($info->data[1] != $user['username']) {
-                Flight::halt(403, json_encode([
+                Flight::jsonHalt([
                     "response" => 'No autorizado'
-                ]));
+                ], 403);
             }
             if (!password_verify($info->data[2], $user['password'])) {
-                Flight::halt(403, json_encode([
+                Flight::jsonHalt([
                     "response" => 'No autorizado'
-                ]));
+                ], 403);
             }
             array_push($info->data, $user["canBuy"]);
             return $info;
         } else {
-            Flight::halt(401, json_encode([
+            Flight::jsonHalt([
                 "response" => "No autorizado"
-            ]));
+            ], 401);
         }
     }
 
-    public function generateToken($userId,$user,$pass)
+    public function generateToken($userId, $user, $pass)
     {
         $now = strtotime("now");
         $payload = [
             'exp' => $now + $this->TOKEN_EXPIRATION_TIME,
-            'data' => [$userId,$user,$pass,'user']
+            'data' => [$userId, $user, $pass, 'user']
         ];
         return JWT::encode($payload, $this->SECRET_KEY, 'HS256');
     }
@@ -121,12 +123,17 @@ class AuthManager
     {
         $headers = Flight::get('headers');
 
-        $authorization = $headers["X-App-Version"];
+        if (!isset($headers["X-App-Version"])) {
+            Flight::jsonHalt([
+                "response" => "No se encontró el header X-App-Version"
+            ], 403);
+        }
+        $appVersion = $headers["X-App-Version"];
 
-        if ($authorization != '1.0.0'){
-            Flight::halt(401, json_encode([
+        if ($appVersion != '1.0.0'){
+            Flight::jsonHalt([
                 "response" => 'Hay una Nueva Actualizacion'
-            ]));
+            ], 401);
         }
 
         $password = str_replace(" ", "", Flight::request()->data->password);
@@ -149,33 +156,33 @@ class AuthManager
             $user = $query->fetch();
 
             if (!$user) {
-                Flight::halt(404, json_encode([
+                Flight::jsonHalt([
                     "response" => 'Usuario No Existe'
-                ]));
+                ], 404);
             }
 
-            if($user["canLogin"] == "true" || $user["ban"] == "true"){
-                Flight::halt(404, json_encode([
+            if ($user["canLogin"] == "true" || $user["ban"] == "true") {
+                Flight::jsonHalt([
                     "response" => 'Usuario Baneado'
-                ]));
+                ], 404);
+                
             }
 
             if (!password_verify($password, $user['password'])) {
-                Flight::halt(401, json_encode([
+                Flight::jsonHalt([
                     "response" => 'Datos Incorrectos'
-                ]));
+                ], 401);
             }
-
 
             $token = $this->generateToken($user['id'], $username, $password);
 
-            Flight::halt(message: json_encode([
+            Flight::jsonHalt([
                 "response" => $token
-            ]));
+            ]);
         } else {
-            Flight::halt(503, json_encode([
+            Flight::jsonHalt([
                 "response" => "No Se Pudo Validar El Usuario, Porfavor Intentelo Mas Tarde",
-            ]));
+            ], 503);
         }
     }
 }
