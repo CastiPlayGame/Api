@@ -12,6 +12,7 @@ require 'controllers/StoreController.php';
 require 'controllers/DocumentController.php';
 require 'controllers/ApiController.php';
 require 'controllers/SystemController.php';
+require 'controllers/LabelController.php';
 
 // Pines Sys
 require 'controllers/pineSys/ItemController.php';
@@ -93,6 +94,10 @@ Flight::route('POST /logs/inv', ['ApiManager', 'log_inventory']);
 //ADMIN 
 Flight::route('GET /system/order', ['SystemManager', 'get_order']);
 
+// LABEL
+Flight::route('POST /label', ['LabelController', 'generate']);
+Flight::route('POST /label/verify', ['LabelController', 'verify']);
+
 // BATCH JOBS ADMIN
 Flight::route('GET /batch_jobs', ['BatchJobController', 'get_all']);
 Flight::route('POST /batch_jobs', ['BatchJobController', 'upsert']);
@@ -141,7 +146,8 @@ Flight::before('start', function () {
         '/batch_jobs',
         '/health',
         '/health/resource',
-        '/logs/inv'
+        '/logs/inv',
+        '/label'
         // Puedes añadir más aquí si tienes otras rutas admin
     ];
 

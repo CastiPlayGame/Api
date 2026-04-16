@@ -331,3 +331,25 @@ Authorization: Bearer {{token_admin}}
 # @name all_departaments
 GET {{base_url}}/s/departament/all
 Authorization: Bearer {{token_admin}}
+
+###
+POST {{base_url}}/label
+Authorization: Bearer {{token_admin}}
+Content-Type: application/json
+
+{
+  "id": "GS-033",
+  "amount": 100,
+  "purchase_number": null,
+  "copies": 1,
+  "number": 1
+}
+
+### Verificar QR
+POST {{base_url}}/label/verify
+Content-Type: application/json
+Authorization: Bearer {{token_admin}}
+
+{
+  "token": "92km0YXfcohMLeBPnwAoV2GJdqH3GhpNT8dGGw1oi47VqsMwX6zXlYCh"
+}

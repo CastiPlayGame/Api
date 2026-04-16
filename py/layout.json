@@ -1,0 +1,78 @@
+{
+  "layout": [
+    {
+      "kind": "qr",
+      "x": 2.3,
+      "y": 2.6,
+      "size": 15.4,
+      "bind": "qr",
+      "text": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "anchor": "nw"
+    },
+    {
+      "kind": "text",
+      "x": 9.8,
+      "y": 20.6,
+      "text": "GS-145",
+      "font": 5.5,
+      "bind": "code",
+      "anchor": "center",
+      "style": "Bold",
+      "wrap": 0.0,
+      "justify": "center",
+      "spacing": 0
+    },
+    {
+      "kind": "text",
+      "x": 10.1,
+      "y": 25.0,
+      "text": "CB-167909",
+      "font": 5.2,
+      "bind": "cb",
+      "anchor": "center",
+      "style": "Bold",
+      "wrap": 0.0,
+      "justify": "center",
+      "spacing": 0
+    },
+    {
+      "kind": "line",
+      "x": 19.9,
+      "y": 14.3,
+      "direction": "v",
+      "length": 24.0,
+      "thickness": 0.4,
+      "anchor": "center"
+    },
+    {
+      "kind": "text",
+      "x": 21.9,
+      "y": 2.0,
+      "text": "Clip De Tapiceria Toyota",
+      "font": 5.2,
+      "bind": "desc",
+      "anchor": "nw",
+      "style": "Bold",
+      "wrap": 25.0,
+      "justify": "left",
+      "spacing": 0
+    },
+    {
+      "kind": "text",
+      "x": 22.1,
+      "y": 24.3,
+      "text": "CANT: 25 UND.",
+      "font": 5.2,
+      "bind": "qty",
+      "anchor": "nw",
+      "style": "Bold",
+      "wrap": 0.0,
+      "justify": "left",
+      "spacing": 0
+    }
+  ],
+  "print_offset": {
+    "x": 0.0,
+    "y": 1.5
+  }
+}
