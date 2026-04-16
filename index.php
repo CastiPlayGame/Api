@@ -97,6 +97,7 @@ Flight::route('GET /system/order', ['SystemManager', 'get_order']);
 // LABEL
 Flight::route('POST /label', ['LabelController', 'generate']);
 Flight::route('POST /label/verify', ['LabelController', 'verify']);
+Flight::route('POST /label/scan', ['LabelController', 'scan']);
 
 // BATCH JOBS ADMIN
 Flight::route('GET /batch_jobs', ['BatchJobController', 'get_all']);

@@ -353,3 +353,18 @@ Authorization: Bearer {{token_admin}}
 {
   "token": "92km0YXfcohMLeBPnwAoV2GJdqH3GhpNT8dGGw1oi47VqsMwX6zXlYCh"
 }
+
+### Escanear etiqueta con IA (Groq - Llama 4 Scout)
+# @name scan_label
+# @body: multipart/form-data; image=@ruta_a_imagen.jpg
+# @response: {code, cb, qty, item_exists, purchase_number, ...}
+POST {{base_url}}/label/scan
+Authorization: Bearer {{token_admin}}
+Content-Type: multipart/form-data; boundary=----ScanBoundary
+
+------ScanBoundary
+Content-Disposition: form-data; name="image"; filename="etiqueta.jpeg"
+Content-Type: image/jpeg
+
+C:/Users/Admin/Pictures/etiqueta.jpg
+------ScanBoundary--
