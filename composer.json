@@ -8,6 +8,7 @@
         "phpoffice/phpspreadsheet": "^1.29",
         "symfony/process": "^5.4",
         "jenssegers/agent": "^2.6",
-        "ezyang/htmlpurifier": "*"
+        "ezyang/htmlpurifier": "*",
+        "pusher/pusher-php-server": "^7.2"
     }
 }

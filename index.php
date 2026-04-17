@@ -25,6 +25,9 @@ require 'utils/SaleUtils.php';
 require 'utils/TemplateUtils.php';
 require 'utils/DocumentUtils.php';
 
+// Services
+require 'services/PusherService.php';
+
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
