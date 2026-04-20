@@ -310,8 +310,13 @@ class LabelController
             }
             $base64Image = base64_encode($imageData);
 
-            // Decode QR from image (best-effort, non-fatal)
-            $qrData = $this->decodeQrFromImage($imageFile);
+            // ── 3b. Decode QR — mandatory, block if not found ───────────────
+            $qrData = $this->decodeQrFromImage($imageFile, $mimeType);
+            if ($qrData === null || $qrData === '') {
+                $this->saveImageLog($imageFile, $mimeType, 'invalid', $session);
+                @unlink($imageFile);
+                Flight::jsonHalt(["ok" => false, "error" => "qr_not_found"], 422);
+            }
 
             // ── 4. Call AI vision (Groq) ────────────────────────────────────
             $apiKey = $_ENV['GROQ_API_KEY'] ?? '';
@@ -433,9 +438,10 @@ class LabelController
             $payload = [
                 "ok"              => true,
                 "code"            => $code,
-                "cb"              => $qrData,
+                "cb"              => $cb,
                 "qty"             => $qty !== null ? (int)$qty : null,
                 "purchase_number" => $purchaseNumber,
+                "qr_data"         => $qrData,
                 "item" => [
                     "uuid"        => $itemUuid,
                     "id"          => $code,
@@ -444,6 +450,7 @@ class LabelController
             ];
 
             // ── 8. Clean temp file BEFORE triggering Pusher ─────────────────
+            $this->saveImageLog($imageFile, $mimeType, 'valid', $session, $code);
             @unlink($imageFile);
 
             // ── 9. Trigger Pusher event (never fail the request on error) ───
@@ -462,26 +469,65 @@ class LabelController
     }
 
     /**
-     * Decode QR code from image using Python script
+     * Save a copy of the scanned image to storage/scans/{valid|invalid}/ for audit logging.
      */
-    private function decodeQrFromImage(string $imagePath): ?string
+    private function saveImageLog(
+        string $tmpPath,
+        string $mimeType,
+        string $bucket,
+        string $session = '',
+        string $code = ''
+    ): void {
+        if (!file_exists($tmpPath)) {
+            return;
+        }
+        $ext      = (strtolower($mimeType) === 'image/png') ? 'png' : 'jpg';
+        $dir      = realpath(__DIR__ . '/../storage/scans/' . $bucket);
+        if (!$dir) {
+            return;
+        }
+        $ts       = date('Ymd_His');
+        $suffix   = $code ? '_' . preg_replace('/[^A-Za-z0-9\-]/', '', $code) : '';
+        $sesShort = substr($session, 0, 8);
+        $filename = $ts . '_' . $sesShort . $suffix . '.' . $ext;
+        @copy($tmpPath, $dir . DIRECTORY_SEPARATOR . $filename);
+    }
+
+    /**
+     * Decode QR code from image using Python script.
+     * Passes PHP temp upload file directly — Python uses cv2.imdecode (no extension needed).
+     */
+    private function decodeQrFromImage(string $imagePath, string $mimeType = 'image/jpeg'): ?string
     {
-        $pythonBin = $_ENV['PYTHON_BIN'] ?? 'C:/Python313/python.exe';
+        $pythonBin  = $_ENV['PYTHON_BIN'] ?? 'C:/Python313/python.exe';
         $scriptPath = realpath(__DIR__ . '/../py/qr_decode.py');
-        if (!$scriptPath) {
+        if (!$scriptPath || !file_exists($imagePath)) {
             return null;
         }
 
-        $cmd = escapeshellarg($pythonBin) . ' ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($imagePath) . ' 2>&1';
+        // Ensure Python can find user-installed packages (cv2, pyzbar) under Apache
+        $packages = $_ENV['PYTHON_PACKAGES'] ?? '';
+        if ($packages !== '') {
+            putenv("PYTHONPATH=$packages");
+        }
+
+        // Pass the upload temp file directly — Python uses cv2.imdecode (no extension needed)
+        $cmd = escapeshellarg($pythonBin) . ' -W ignore ' . escapeshellarg($scriptPath) . ' ' . escapeshellarg($imagePath) . ' 2>NUL';
         $output = [];
         $returnCode = 0;
         exec($cmd, $output, $returnCode);
 
-        if ($returnCode !== 0) {
-            return null;
+        // Find the JSON line (warnings may appear before it)
+        foreach (array_reverse($output) as $line) {
+            $line = trim($line);
+            if ($line !== '' && $line[0] === '{') {
+                $decoded = json_decode($line, true);
+                if (is_array($decoded)) {
+                    return ($decoded['found'] ?? false) ? $decoded['data'] : null;
+                }
+            }
         }
 
-        $result = json_decode(implode("\n", $output), true);
-        return ($result['found'] ?? false) ? $result['data'] : null;
+        return null;
     }
 }

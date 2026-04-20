@@ -9,6 +9,8 @@
         "symfony/process": "^5.4",
         "jenssegers/agent": "^2.6",
         "ezyang/htmlpurifier": "*",
-        "pusher/pusher-php-server": "^7.2"
+        "pusher/pusher-php-server": "^7.2",
+        "libern/qr-code-reader": "^1.0",
+        "khanamiryan/qrcode-detector-decoder": "^1.0"
     }
 }
